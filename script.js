@@ -40,52 +40,49 @@ let model;
 })();
 
 async function predict() {
-  const imgData = ctx.getImageData(0, 0, 280, 280);
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-  let tensor = tf.browser.fromPixels(imgData, 1)
+  const tfImg = tf.browser.fromPixels(imageData, 1)
     .resizeNearestNeighbor([28, 28])
     .toFloat()
     .div(255.0)
-    .expandDims(0);
+    .reshape([1, 28, 28, 1]);
 
-  const prediction = model.predict(tensor);
+  if (!window.model) {
+    window.model = await tf.loadLayersModel("model/model.json");
+  }
+
+  const prediction = window.model.predict(tfImg);
   const probabilities = prediction.dataSync();
 
-  let maxProb = Math.max(...probabilities);
-  let digit = probabilities.indexOf(maxProb);
+  let maxIndex = probabilities.indexOf(Math.max(...probabilities));
+  let confidence = (probabilities[maxIndex] * 100).toFixed(2);
 
-  document.getElementById("prediction").innerText = digit;
+  document.getElementById("prediction").innerText = maxIndex;
   document.getElementById("confidence").innerText =
-    `Confidence: ${(maxProb * 100).toFixed(2)}%`;
+    `Confidence: ${confidence}%`;
+
+  drawConfusionMatrix(maxIndex);
 }
 
 function toggleTheme() {
   document.body.classList.toggle("light");
 }
 
-function drawConfusionMatrix() {
-  const canvas = document.getElementById("matrixCanvas");
-  const ctx = canvas.getContext("2d");
+function drawConfusionMatrix(predictedDigit) {
+  matrixCtx.clearRect(0, 0, 300, 300);
 
-  const size = 10;
-  const cell = canvas.width / size;
+  const size = 30;
 
-  // Fake but realistic matrix (for visualization)
-  const matrix = Array.from({ length: 10 }, (_, i) =>
-    Array.from({ length: 10 }, (_, j) =>
-      i === j ? Math.floor(Math.random() * 20 + 80) : Math.floor(Math.random() * 10)
-    )
-  );
+  for (let i = 0; i < 10; i++) {
+    for (let j = 0; j < 10; j++) {
+      matrixCtx.strokeStyle = "#aaa";
+      matrixCtx.strokeRect(j * size, i * size, size, size);
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  matrix.forEach((row, i) => {
-    row.forEach((val, j) => {
-      const intensity = val / 100;
-      ctx.fillStyle = `rgba(127,156,255,${intensity})`;
-      ctx.fillRect(j * cell, i * cell, cell, cell);
-    });
-  });
+      if (i === predictedDigit && j === predictedDigit) {
+        matrixCtx.fillStyle = "rgba(0, 255, 255, 0.6)";
+        matrixCtx.fillRect(j * size, i * size, size, size);
+      }
+    }
+  }
 }
-
-drawConfusionMatrix();
