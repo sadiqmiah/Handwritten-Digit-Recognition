@@ -13,7 +13,7 @@ body {
 /* HERO with BACKGROUND IMAGE */
 .hero {
   height: 60vh;
-  background: url("your-background-image.jpg") center/cover no-repeat;
+  background: url("ai_digit.jpg") center/cover no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -24,7 +24,7 @@ body {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0);
 }
 
 .hero-content {
