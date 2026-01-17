@@ -1,0 +1,67 @@
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+.app-card h2 {
+  color: #9fb4ff;
+  margin-bottom: 10px;
+}
+
+.result span {
+  font-size: 3rem;
+  color: #7f9cff;
+  text-shadow: 0 0 15px rgba(127,156,255,0.7);
+}
+🔹 script.js (Fully Working CNN In-Browser)
+javascript
+Copy code
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+ctx.fillStyle = "black";
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+let drawing = false;
+
+// Drawing
+canvas.addEventListener("mousedown", () => drawing = true);
+canvas.addEventListener("mouseup", () => drawing = false);
+canvas.addEventListener("mousemove", draw);
+
+function draw(e) {
+  if (!drawing) return;
+  ctx.fillStyle = "white";
+  ctx.beginPath();
+  ctx.arc(e.offsetX, e.offsetY, 10, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function clearCanvas() {
+  ctx.fillStyle = "black";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  document.getElementById("prediction").innerText = "–";
+}
+
+// Load pretrained MNIST model
+let model;
+(async () => {
+  model = await tf.loadLayersModel(
+    "https://storage.googleapis.com/tfjs-models/tfjs/mnist/model.json"
+  );
+})();
+
+async function predict() {
+  const imgData = ctx.getImageData(0, 0, 280, 280);
+
+  let tensor = tf.browser.fromPixels(imgData, 1)
+    .resizeNearestNeighbor([28, 28])
+    .toFloat()
+    .div(255.0)
+    .expandDims(0);
+
+  const prediction = model.predict(tensor);
+  const digit = prediction.argMax(1).dataSync()[0];
+
+  document.getElementById("prediction").innerText = digit;
+}
