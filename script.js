@@ -1,5 +1,12 @@
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
+
+const matrixCanvas = document.getElementById("matrixCanvas");
+const matrixCtx = matrixCanvas.getContext("2d");
+
+// Clear matrix on load
+matrixCtx.clearRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+
 ctx.fillStyle = "black";
 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
