@@ -105,16 +105,17 @@ button:hover {
 }
 
 .matrix-section {
-  padding: 60px;
-  text-align: center;
-}
-
-#matrixCanvas {
   background: rgba(20, 20, 40, 0.9);
   border-radius: 20px;
   padding: 40px;
   width: 360px;
   box-shadow: 0 0 40px rgba(127, 156, 255, 0.3);
   text-align: center;
-  animation: float 4s ease-in-out infinite
+  animation: float 4s ease-in-out infinite;
+}
+
+#matrixCanvas {
+  margin-top: 20px;
+  background: rgba(0,0,0,0.4);
+  border-radius: 12px;
 }
