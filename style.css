@@ -103,3 +103,14 @@ button:hover {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+.matrix-section {
+  padding: 60px;
+  text-align: center;
+}
+
+#matrixCanvas {
+  margin-top: 20px;
+  background: rgba(0,0,0,0.4);
+  border-radius: 12px;
+}
