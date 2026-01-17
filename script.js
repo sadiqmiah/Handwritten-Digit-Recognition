@@ -63,6 +63,7 @@ function drawConfusionMatrix() {
   const size = 10;
   const cell = canvas.width / size;
 
+  // Fake but realistic matrix (for visualization)
   const matrix = Array.from({ length: 10 }, (_, i) =>
     Array.from({ length: 10 }, (_, j) =>
       i === j ? Math.floor(Math.random() * 20 + 80) : Math.floor(Math.random() * 10)
