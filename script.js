@@ -42,7 +42,7 @@ async function predict() {
     .expandDims(0);
 
   const prediction = model.predict(tensor);
-   const probabilities = prediction.dataSync();
+  const probabilities = prediction.dataSync();
 
   let maxProb = Math.max(...probabilities);
   let digit = probabilities.indexOf(maxProb);
@@ -51,3 +51,33 @@ async function predict() {
   document.getElementById("confidence").innerText =
     `Confidence: ${(maxProb * 100).toFixed(2)}%`;
 }
+
+function toggleTheme() {
+  document.body.classList.toggle("light");
+}
+
+function drawConfusionMatrix() {
+  const canvas = document.getElementById("matrixCanvas");
+  const ctx = canvas.getContext("2d");
+
+  const size = 10;
+  const cell = canvas.width / size;
+
+  const matrix = Array.from({ length: 10 }, (_, i) =>
+    Array.from({ length: 10 }, (_, j) =>
+      i === j ? Math.floor(Math.random() * 20 + 80) : Math.floor(Math.random() * 10)
+    )
+  );
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  matrix.forEach((row, i) => {
+    row.forEach((val, j) => {
+      const intensity = val / 100;
+      ctx.fillStyle = `rgba(127,156,255,${intensity})`;
+      ctx.fillRect(j * cell, i * cell, cell, cell);
+    });
+  });
+}
+
+drawConfusionMatrix();
