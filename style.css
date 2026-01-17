@@ -105,17 +105,19 @@ button:hover {
 }
 
 .matrix-section {
-  background: rgba(20, 20, 40, 0.9);
-  border-radius: 20px;
-  padding: 40px;
-  width: 360px;
-  box-shadow: 0 0 40px rgba(127, 156, 255, 0.3);
-  text-align: center;
-  animation: float 4s ease-in-out infinite;
+  display: flex;
+  justify-content: center;
+  margin: 60px 0;
 }
 
-#matrixCanvas {
-  margin-top: 20px;
-  background: rgba(0,0,0,0.4);
-  border-radius: 12px;
+.matrix-section h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+#matrixCanvas,
+.matrix-card {
+  box-shadow: none !important;
+  filter: none !important;
+  background: transparent;
 }
