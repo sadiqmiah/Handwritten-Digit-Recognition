@@ -92,3 +92,7 @@ body.light .app-card {
 body.light canvas {
   background: #ddd;
 }
+
+#matrixCanvas {
+  pointer-events: none;
+}
