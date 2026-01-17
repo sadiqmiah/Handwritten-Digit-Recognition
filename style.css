@@ -1,0 +1,105 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Orbitron', sans-serif;
+}
+
+body {
+  background: #0a0a0f;
+  color: #e0e0ff;
+}
+
+/* HERO with BACKGROUND IMAGE */
+.hero {
+  height: 60vh;
+  background: url("your-background-image.jpg") center/cover no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.hero-content {
+  position: relative;
+  text-align: center;
+  animation: fadeIn 2s ease;
+}
+
+.hero h1 {
+  font-size: 3rem;
+  color: #7f9cff;
+}
+
+.hero p {
+  margin-top: 10px;
+  color: #cfd8ff;
+}
+
+/* MAIN APP */
+.app-section {
+  padding: 80px 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.app-card {
+  background: rgba(20, 20, 40, 0.9);
+  border-radius: 20px;
+  padding: 40px;
+  width: 360px;
+  box-shadow: 0 0 40px rgba(127, 156, 255, 0.3);
+  text-align: center;
+  animation: float 4s ease-in-out infinite;
+}
+
+canvas {
+  background: black;
+  border-radius: 12px;
+  margin: 20px 0;
+  cursor: crosshair;
+}
+
+.buttons {
+  display: flex;
+  justify-content: space-between;
+}
+
+button {
+  background: linear-gradient(135deg, #7f9cff, #4f6cff);
+  border: none;
+  padding: 10px 20px;
+  color: white;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+button:hover {
+  transform: scale(1.05);
+}
+
+.result {
+  margin-top: 20px;
+  font-size: 1.4rem;
+}
+
+/* INFO */
+.info {
+  padding: 60px;
+  text-align: center;
+  max-width: 800px;
+  margin: auto;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
