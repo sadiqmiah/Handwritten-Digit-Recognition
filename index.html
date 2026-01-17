@@ -13,71 +13,64 @@
   <!-- Styles -->
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="style3.css">
-  <script src="script.js"></script>
 </head>
 
 <body>
-  <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
 
-  <!-- HERO SECTION -->
-  <div class="hero">
-  <div class="hero-content">
+<button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="mainimg">
     <h1 class="Intro">Handwritten Digit Recognition</h1>
-    <p class="hero-sub">AI-powered CNN model trained on MNIST</p>
-    <img src="ai_digit.jpg" alt="Handwritten Digit AI" height="100%" width="100%">
+    <img src="ai_digit.jpg" alt="Handwritten Digit AI">
   </div>
 </div>
 
+<!-- APP -->
+<section class="app-section">
+  <div class="app-card">
+    <h2>Draw a Digit (0–9)</h2>
 
-  <!-- MAIN APP -->
-  <section class="app-section">
-    <div class="app-card">
+    <canvas id="canvas" width="280" height="280"></canvas>
 
-      <h2>Draw a Digit (0–9)</h2>
-
-      <canvas id="canvas" width="280" height="280"></canvas>
-
-      <div class="buttons">
-        <button onclick="clearCanvas()">Clear</button>
-        <button onclick="predict()">Predict</button>
-      </div>
-
-      <div class="result">
-        <h3>Prediction:</h3>
-        <span id="prediction">–</span>
-        <p id="confidence">Confidnce: –</p>
-      </div>
-
+    <div class="buttons">
+      <button onclick="clearCanvas()">Clear</button>
+      <button onclick="predict()">Predict</button>
     </div>
-  </section>
 
-  <!-- CONFUSION MATRIX -->
-  <section class="matrix-section">
-    <h2>Confusion Matrix</h2>
-    <canvas id="matrixCanvas" width="300" height="300"></canvas>
-  </section>
-  
-  <!-- INFO -->
-  <section class="info">
-    <h2>How It Works</h2>
-    <p>
-      This project uses a Convolutional Neural Network (CNN) trained on the MNIST dataset.
-      Your drawing is preprocessed and classified directly in the browser using TensorFlow.js.
-    </p>
-  </section>
+    <div class="result">
+      <h3>Prediction:</h3>
+      <span id="prediction">–</span>
+      <p id="confidence">Confidence: –</p>
+    </div>
+  </div>
+</section>
 
+<!-- CONFUSION MATRIX -->
+<section class="matrix-section">
+  <h2>Confusion Matrix</h2>
+  <canvas id="matrixCanvas" width="300" height="300"></canvas>
+</section>
+
+<!-- INFO -->
+<section class="info">
+  <h2>How It Works</h2>
+  <p>
+    This project uses a Convolutional Neural Network (CNN) trained on the MNIST dataset.
+    Your drawing is preprocessed and classified directly in the browser using TensorFlow.js.
+  </p>
+</section>
 
 <footer class="foot">
-    <h6> 
-      Copyright © 2026 Handwritten Digit Recognition <br> 
-      All Rights Reserved 
-    </h6>   
+  <h6>
+    Copyright © 2026 Handwritten Digit Recognition<br>
+    All Rights Reserved
+  </h6>
 </footer>
-  
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <link href="./style.css" rel="stylesheet">
 
-  <!-- Scripts -->
+<!-- Scripts -->
 <script src="script.js"></script>
+
 </body>
 </html>
