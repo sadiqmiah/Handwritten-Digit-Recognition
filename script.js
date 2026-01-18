@@ -1,74 +1,83 @@
+// ================== CANVAS ==================
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
-
-const matrixCanvas = document.getElementById("matrixCanvas");
-const matrixCtx = matrixCanvas.getContext("2d");
-
-// Clear matrix on load
-matrixCtx.clearRect(0, 0, matrixCanvas.width, matrixCanvas.height);
 
 ctx.fillStyle = "black";
 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 let drawing = false;
 
-// Drawing
 canvas.addEventListener("mousedown", () => drawing = true);
-canvas.addEventListener("mouseup", () => drawing = false);
+canvas.addEventListener("mouseup", () => {
+  drawing = false;
+  ctx.beginPath();
+});
+canvas.addEventListener("mouseleave", () => drawing = false);
 canvas.addEventListener("mousemove", draw);
 
 function draw(e) {
   if (!drawing) return;
+
   ctx.fillStyle = "white";
   ctx.beginPath();
   ctx.arc(e.offsetX, e.offsetY, 10, 0, Math.PI * 2);
   ctx.fill();
 }
 
+// ================== CLEAR ==================
 function clearCanvas() {
   ctx.fillStyle = "black";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   document.getElementById("prediction").innerText = "–";
+  document.getElementById("confidence").innerText = "Confidence: –";
 }
 
-// Load pretrained MNIST model
+// ================== MODEL ==================
 let model;
-(async () => {
+
+async function loadModel() {
   model = await tf.loadLayersModel(
     "https://storage.googleapis.com/tfjs-models/tfjs/mnist/model.json"
   );
-})();
+  console.log("✅ MNIST model loaded");
+}
 
+loadModel();
+
+// ================== PREDICT ==================
 async function predict() {
-  console.log("Predict clicked");
+  if (!model) {
+    alert("Model still loading");
+    return;
+  }
+
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-  const tfImg = tf.browser.fromPixels(imageData, 1)
+  let img = tf.browser
+    .fromPixels(imageData, 1)
     .resizeNearestNeighbor([28, 28])
     .toFloat()
     .div(255.0)
     .reshape([1, 28, 28, 1]);
 
-  if (!window.model) {
-    window.model = await tf.loadLayersModel("model/model.json");
-  }
+  const prediction = model.predict(img);
+  const probs = prediction.dataSync();
 
-  const prediction = window.model.predict(tfImg);
-  const probabilities = prediction.dataSync();
+  const digit = probs.indexOf(Math.max(...probs));
+  const confidence = (Math.max(...probs) * 100).toFixed(2);
 
-  let maxIndex = probabilities.indexOf(Math.max(...probabilities));
-  let confidence = (probabilities[maxIndex] * 100).toFixed(2);
-
-  document.getElementById("prediction").innerText = maxIndex;
+  document.getElementById("prediction").innerText = digit;
   document.getElementById("confidence").innerText =
     `Confidence: ${confidence}%`;
 
-  drawConfusionMatrix(maxIndex);
+  drawConfusionMatrix(digit);
 }
 
-function toggleTheme() {
-  document.body.classList.toggle("light");
-}
+// ================== CONFUSION MATRIX ==================
+const matrixCanvas = document.getElementById("matrixCanvas");
+const matrixCtx = matrixCanvas.getContext("2d");
+
+matrixCtx.clearRect(0, 0, matrixCanvas.width, matrixCanvas.height);
 
 function drawConfusionMatrix(predictedDigit) {
   matrixCtx.clearRect(0, 0, 300, 300);
@@ -81,9 +90,14 @@ function drawConfusionMatrix(predictedDigit) {
       matrixCtx.strokeRect(j * size, i * size, size, size);
 
       if (i === predictedDigit && j === predictedDigit) {
-        matrixCtx.fillStyle = "rgba(0, 255, 255, 0.6)";
+        matrixCtx.fillStyle = "rgba(0, 200, 255, 0.6)";
         matrixCtx.fillRect(j * size, i * size, size, size);
       }
     }
   }
+}
+
+// ================== THEME ==================
+function toggleTheme() {
+  document.body.classList.toggle("light");
 }
