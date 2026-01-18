@@ -34,42 +34,28 @@ function clearCanvas() {
 
 // ================== MODEL ==================
 let model = null;
-let modelLoaded = false;
 
-async function loadModel() {
-  document.getElementById("prediction").innerText = "Loading model...";
-  document.getElementById("confidence").innerText = "";
-
+(async () => {
   model = await tf.loadLayersModel(
     "https://storage.googleapis.com/tfjs-models/tfjs/mnist/model.json"
   );
 
-  modelLoaded = true;
-
-  document.getElementById("prediction").innerText = "Ready ✓";
-  document.getElementById("confidence").innerText = "Draw a digit and click Predict";
-  console.log("✅ MNIST model loaded");
-}
+})();
 
 loadModel();
 
 // ================== PREDICT ==================
 async function predict() {
-  if (!modelLoaded) {
-    return; // silently ignore clicks until ready
-  }
+  if (!model) return; // silently wait until ready
 
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-  let img = tf.browser
+  const img = tf.browser
     .fromPixels(imageData, 1)
     .resizeNearestNeighbor([28, 28])
     .toFloat()
     .div(255.0)
-    
-  img = tf.sub(1, img);
-
-  img = img.reshape([1, 28, 28, 1]);
+    .reshape([1, 28, 28, 1]);
 
   const prediction = model.predict(img);
   const probs = prediction.dataSync();
