@@ -35,6 +35,7 @@ function clearCanvas() {
 // ================== MODEL ==================
 let model = null;
 
+// Load the model silently in the background
 (async () => {
   model = await tf.loadLayersModel(
     "https://storage.googleapis.com/tfjs-models/tfjs/mnist/model.json"
@@ -44,10 +45,7 @@ let model = null;
 
 // ================== PREDICT ==================
 async function predict() {
-  if (!model) {
-    alert("Model is still loading… please wait a few seconds.");
-    return;
-  }
+  if (!model) return; // silently do nothing if model isn’t ready yet
 
   const imgData = ctx.getImageData(0, 0, 280, 280);
 
