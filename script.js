@@ -1,4 +1,3 @@
-// ================== CANVAS ==================
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
@@ -7,7 +6,6 @@ ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 let drawing = false;
 
-// Drawing
 canvas.addEventListener("mousedown", () => drawing = true);
 canvas.addEventListener("mouseup", () => {
   drawing = false;
@@ -34,51 +32,63 @@ function clearCanvas() {
 
 // ================== MODEL ==================
 let model = null;
+let pendingPredict = false;
 
-// Load the model silently in the background
-(async () => {
-  model = await tf.loadLayersModel(
-    "https://storage.googleapis.com/tfjs-models/tfjs/mnist/model.json"
-  );
-  console.log("Model loaded ✅");
-})();
+// Load MNIST model
+tf.loadLayersModel("https://storage.googleapis.com/tfjs-models/tfjs/mnist/model.json")
+  .then(loadedModel => {
+    model = loadedModel;
+    console.log("Model loaded ✅");
+
+    // Run pending prediction if user clicked predict early
+    if (pendingPredict) {
+      predict();
+      pendingPredict = false;
+    }
+  })
+  .catch(err => console.error("Model failed to load:", err));
 
 // ================== PREDICT ==================
-async function predict() {
-  if (!model) return;
+function predict() {
+  if (!model) {
+    // Model not ready yet, set flag and return
+    pendingPredict = true;
+    return;
+  }
 
-  // Get image data and resize to 28x28
-  const offCanvas = document.createElement("canvas");
-  offCanvas.width = 28;
-  offCanvas.height = 28;
-  const offCtx = offCanvas.getContext("2d");
-  
+  // Resize canvas to 28x28 for model
+  const tempCanvas = document.createElement("canvas");
+  tempCanvas.width = 28;
+  tempCanvas.height = 28;
+  const tempCtx = tempCanvas.getContext("2d");
   tempCtx.drawImage(canvas, 0, 0, 28, 28);
 
-  const imgData = offCtx.getImageData(0, 0, 28, 28);
+  const imgData = tempCtx.getImageData(0, 0, 28, 28);
   const data = imgData.data;
 
-  // Create a Float32Array for the model
+  // Prepare Float32Array for model
   const input = new Float32Array(28 * 28);
 
   for (let i = 0; i < 28 * 28; i++) {
     const r = data[i * 4];
     const g = data[i * 4 + 1];
     const b = data[i * 4 + 2];
-
     const avg = (r + g + b) / 3;
-    // invert so digit = 1, background = 0
+    // Invert colors: digit = 1, background = 0
     input[i] = (255 - avg) / 255;
   }
 
+  // Create tensor
   const tensor = tf.tensor4d(input, [1, 28, 28, 1]);
 
+  // Predict
   const prediction = model.predict(tensor);
   const probs = prediction.dataSync();
 
   const digit = probs.indexOf(Math.max(...probs));
   const confidence = (Math.max(...probs) * 100).toFixed(2);
 
+  // Update HTML
   document.getElementById("prediction").innerText = digit;
   document.getElementById("confidence").innerText = `Confidence: ${confidence}%`;
 
@@ -91,7 +101,6 @@ const matrixCtx = matrixCanvas.getContext("2d");
 
 function drawConfusionMatrix(predictedDigit) {
   matrixCtx.clearRect(0, 0, 300, 300);
-
   const size = 30;
 
   for (let i = 0; i < 10; i++) {
