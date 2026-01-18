@@ -7,6 +7,7 @@ ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 let drawing = false;
 
+// Drawing
 canvas.addEventListener("mousedown", () => drawing = true);
 canvas.addEventListener("mouseup", () => {
   drawing = false;
@@ -17,7 +18,6 @@ canvas.addEventListener("mousemove", draw);
 
 function draw(e) {
   if (!drawing) return;
-
   ctx.fillStyle = "white";
   ctx.beginPath();
   ctx.arc(e.offsetX, e.offsetY, 10, 0, Math.PI * 2);
@@ -39,33 +39,32 @@ let model = null;
   model = await tf.loadLayersModel(
     "https://storage.googleapis.com/tfjs-models/tfjs/mnist/model.json"
   );
-
+  console.log("Model loaded ✅");
 })();
-
-loadModel();
 
 // ================== PREDICT ==================
 async function predict() {
-  if (!model) return; // silently wait until ready
+  if (!model) {
+    alert("Model is still loading… please wait a few seconds.");
+    return;
+  }
 
-  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const imgData = ctx.getImageData(0, 0, 280, 280);
 
-  const img = tf.browser
-    .fromPixels(imageData, 1)
+  const tensor = tf.browser.fromPixels(imgData, 1)
     .resizeNearestNeighbor([28, 28])
     .toFloat()
     .div(255.0)
     .reshape([1, 28, 28, 1]);
 
-  const prediction = model.predict(img);
+  const prediction = model.predict(tensor);
   const probs = prediction.dataSync();
 
   const digit = probs.indexOf(Math.max(...probs));
   const confidence = (Math.max(...probs) * 100).toFixed(2);
 
   document.getElementById("prediction").innerText = digit;
-  document.getElementById("confidence").innerText =
-    `Confidence: ${confidence}%`;
+  document.getElementById("confidence").innerText = `Confidence: ${confidence}%`;
 
   drawConfusionMatrix(digit);
 }
@@ -73,8 +72,6 @@ async function predict() {
 // ================== CONFUSION MATRIX ==================
 const matrixCanvas = document.getElementById("matrixCanvas");
 const matrixCtx = matrixCanvas.getContext("2d");
-
-matrixCtx.clearRect(0, 0, matrixCanvas.width, matrixCanvas.height);
 
 function drawConfusionMatrix(predictedDigit) {
   matrixCtx.clearRect(0, 0, 300, 300);
