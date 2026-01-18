@@ -40,6 +40,7 @@ let model;
 })();
 
 async function predict() {
+  console.log("Predict clicked");
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
   const tfImg = tf.browser.fromPixels(imageData, 1)
