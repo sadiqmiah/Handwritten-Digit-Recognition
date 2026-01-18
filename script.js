@@ -58,7 +58,10 @@ async function predict() {
     .resizeNearestNeighbor([28, 28])
     .toFloat()
     .div(255.0)
-    .reshape([1, 28, 28, 1]);
+    
+  img = tf.sub(1, img);
+
+  img = img.reshape([1, 28, 28, 1]);
 
   const prediction = model.predict(img);
   const probs = prediction.dataSync();
