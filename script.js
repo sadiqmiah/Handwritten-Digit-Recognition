@@ -45,23 +45,32 @@ let model = null;
 
 // ================== PREDICT ==================
 async function predict() {
-  if (!model) return; // silently do nothing if model isn’t ready yet
+  if (!model) return;
 
-  const imgData = ctx.getImageData(0, 0, 280, 280);
-   const data = imgData.data;
+  // Get image data and resize to 28x28
+  const offCanvas = document.createElement("canvas");
+  offCanvas.width = 28;
+  offCanvas.height = 28;
+  const offCtx = offCanvas.getContext("2d");
+  offCtx.drawImage(canvas, 0, 0, 28, 28);
 
-  // Invert colors: white strokes -> black, black background -> white
-  for (let i = 0; i < data.length; i += 4) {
-    const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-    const inverted = 255 - avg;
-    data[i] = data[i + 1] = data[i + 2] = inverted;
+  const imgData = offCtx.getImageData(0, 0, 28, 28);
+  const data = imgData.data;
+
+  // Create a Float32Array for the model
+  const input = new Float32Array(28 * 28);
+
+  for (let i = 0; i < 28 * 28; i++) {
+    const r = data[i * 4];
+    const g = data[i * 4 + 1];
+    const b = data[i * 4 + 2];
+
+    const avg = (r + g + b) / 3;
+    // invert so digit = 1, background = 0
+    input[i] = (255 - avg) / 255;
   }
 
-  const tensor = tf.browser.fromPixels(imgData, 1)
-    .resizeNearestNeighbor([28, 28])
-    .toFloat()
-    .div(255.0)
-    .reshape([1, 28, 28, 1]);
+  const tensor = tf.tensor4d(input, [1, 28, 28, 1]);
 
   const prediction = model.predict(tensor);
   const probs = prediction.dataSync();
