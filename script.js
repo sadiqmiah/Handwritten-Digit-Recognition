@@ -1,3 +1,4 @@
+alert("SCRIPT LOADED");
 console.log("script.js loaded");
 
 // ================== CANVAS ==================
