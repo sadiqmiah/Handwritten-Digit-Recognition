@@ -96,3 +96,14 @@ body.light canvas {
 #matrixCanvas {
   pointer-events: none;
 }
+
+  .result {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 1rem;
+  border-radius: 12px;
+}
+
+body.light .result {
+  background: #eef1ff;
+  color: #111;
+}
