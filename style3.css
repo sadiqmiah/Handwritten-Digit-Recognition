@@ -98,12 +98,31 @@ body.light canvas {
 }
 
   .result {
-  background: rgba(255, 255, 255, 0.08);
+  margin-top: 20px;
+  font-size: 1.4rem;
   padding: 1rem;
   border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
 }
 
 body.light .result {
   background: #eef1ff;
   color: #111;
+}
+
+.matrix-section {
+  padding: 60px;
+  display: flex;
+  justify-content: center;
+  text-align: center;
+}
+
+.matrix-card {
+  text-align: center;
+}
+
+#matrixCanvas {
+  margin-top: 20px;
+  border-radius: 12px;
+  pointer-events: none;
 }
