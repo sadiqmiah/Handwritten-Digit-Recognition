@@ -52,7 +52,8 @@ async function predict() {
   offCanvas.width = 28;
   offCanvas.height = 28;
   const offCtx = offCanvas.getContext("2d");
-  offCtx.drawImage(canvas, 0, 0, 28, 28);
+  
+  tempCtx.drawImage(canvas, 0, 0, 28, 28);
 
   const imgData = offCtx.getImageData(0, 0, 28, 28);
   const data = imgData.data;
