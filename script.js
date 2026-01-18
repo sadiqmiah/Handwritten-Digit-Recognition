@@ -48,6 +48,14 @@ async function predict() {
   if (!model) return; // silently do nothing if model isn’t ready yet
 
   const imgData = ctx.getImageData(0, 0, 280, 280);
+   const data = imgData.data;
+
+  // Invert colors: white strokes -> black, black background -> white
+  for (let i = 0; i < data.length; i += 4) {
+    const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+    const inverted = 255 - avg;
+    data[i] = data[i + 1] = data[i + 2] = inverted;
+  }
 
   const tensor = tf.browser.fromPixels(imgData, 1)
     .resizeNearestNeighbor([28, 28])
