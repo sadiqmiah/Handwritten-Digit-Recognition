@@ -1,93 +1,77 @@
-alert("SCRIPT LOADED");
-console.log("script.js loaded");
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("DOM READY");
 
-// ================== CANVAS ==================
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
 
-ctx.fillStyle = "black";
-ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-let drawing = false;
-
-canvas.addEventListener("mousedown", () => drawing = true);
-canvas.addEventListener("mouseup", () => drawing = false);
-canvas.addEventListener("mouseleave", () => drawing = false);
-canvas.addEventListener("mousemove", draw);
-
-function draw(e) {
-  if (!drawing) return;
-  ctx.fillStyle = "white";
-  ctx.beginPath();
-  ctx.arc(e.offsetX, e.offsetY, 10, 0, Math.PI * 2);
-  ctx.fill();
-}
-
-// ================== CLEAR ==================
-function clearCanvas() {
   ctx.fillStyle = "black";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  document.getElementById("prediction").innerText = "–";
-  document.getElementById("confidence").innerText = "Confidence: –";
-}
 
-// ================== MODEL ==================
-let model = null;
+  let drawing = false;
 
-tf.loadLayersModel(
-  "https://storage.googleapis.com/tfjs-models/tfjs/mnist/model.json"
-).then(m => {
-  model = m;
-  console.log("MODEL LOADED");
-}).catch(err => console.error(err));
+  canvas.addEventListener("mousedown", () => drawing = true);
+  canvas.addEventListener("mouseup", () => drawing = false);
+  canvas.addEventListener("mouseleave", () => drawing = false);
+  canvas.addEventListener("mousemove", draw);
 
-// ================== PREDICT ==================
-function predict() {
-  console.log("PREDICT CLICKED");
-
-  if (!model) {
-    console.log("MODEL NOT READY");
-    return;
+  function draw(e) {
+    if (!drawing) return;
+    ctx.fillStyle = "white";
+    ctx.beginPath();
+    ctx.arc(e.offsetX, e.offsetY, 10, 0, Math.PI * 2);
+    ctx.fill();
   }
 
-  const temp = document.createElement("canvas");
-  temp.width = 28;
-  temp.height = 28;
-  const tctx = temp.getContext("2d");
+  window.clearCanvas = function () {
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    document.getElementById("prediction").innerText = "–";
+    document.getElementById("confidence").innerText = "Confidence: –";
+  };
 
-  tctx.drawImage(canvas, 0, 0, 28, 28);
+  let model = null;
 
-  const img = tctx.getImageData(0, 0, 28, 28).data;
-  const input = new Float32Array(28 * 28);
+  tf.loadLayersModel("https://storage.googleapis.com/tfjs-models/tfjs/mnist/model.json")
+    .then(m => {
+      model = m;
+      console.log("MODEL LOADED");
+    });
 
-  for (let i = 0; i < 28 * 28; i++) {
-    const avg =
-      (img[i * 4] + img[i * 4 + 1] + img[i * 4 + 2]) / 3;
-    input[i] = (255 - avg) / 255;
-  }
+  window.predict = function () {
+    if (!model) return;
 
-  const tensor = tf.tensor4d(input, [1, 28, 28, 1]);
-  const output = model.predict(tensor).dataSync();
+    const temp = document.createElement("canvas");
+    temp.width = 28;
+    temp.height = 28;
+    const tctx = temp.getContext("2d");
+    tctx.drawImage(canvas, 0, 0, 28, 28);
 
-  let digit = 0;
-  let max = output[0];
+    const img = tctx.getImageData(0, 0, 28, 28).data;
+    const input = new Float32Array(28 * 28);
 
-  for (let i = 1; i < 10; i++) {
-    if (output[i] > max) {
-      max = output[i];
-      digit = i;
+    for (let i = 0; i < 28 * 28; i++) {
+      const avg = (img[i * 4] + img[i * 4 + 1] + img[i * 4 + 2]) / 3;
+      input[i] = (255 - avg) / 255;
     }
-  }
 
-  document.getElementById("prediction").innerText = digit;
-  document.getElementById("confidence").innerText =
-    `Confidence: ${(max * 100).toFixed(2)}%`;
+    const tensor = tf.tensor4d(input, [1, 28, 28, 1]);
+    const output = model.predict(tensor).dataSync();
 
-  console.log("PREDICTED:", digit);
-}
+    let digit = 0;
+    let max = output[0];
+    for (let i = 1; i < 10; i++) {
+      if (output[i] > max) {
+        max = output[i];
+        digit = i;
+      }
+    }
 
-// ================== THEME ==================
-function toggleTheme() {
-  document.body.classList.toggle("light");
-  console.log("THEME TOGGLED");
-}
+    document.getElementById("prediction").innerText = digit;
+    document.getElementById("confidence").innerText =
+      `Confidence: ${(max * 100).toFixed(2)}%`;
+  };
+
+  window.toggleTheme = function () {
+    document.body.classList.toggle("light");
+  };
+});
