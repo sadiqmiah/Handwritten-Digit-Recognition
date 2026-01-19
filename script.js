@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "https://storage.googleapis.com/learnjs-data/model-builder/mnist/model.json"
   ).then(m => {
     model = m;
-    predictBtn.disabled = false;
+    document.getElementById("predictBtn").disabled = false;
     console.log("MODEL LOADED");
   });
 
