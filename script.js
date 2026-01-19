@@ -41,9 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 5️⃣ MODEL LOAD ⬅️ THIS GOES HERE
   let model = null;
-const predictBtn = document.getElementById("predictBtn");
-
-tf.loadLayersModel("https://raw.githubusercontent.com/guillaume-chevalier/MNIST_tfjs_model/main/model.json")
+  tf.loadLayersModel("https://raw.githubusercontent.com/guillaume-chevalier/MNIST_tfjs_model/main/model.json")
   .then(m => {
     model = m;
     predictBtn.disabled = false;
