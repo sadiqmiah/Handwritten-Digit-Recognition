@@ -1,17 +1,18 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   console.log("DOM READY");
 
-  // ---------------------------
-  // Canvas setup
-  // ---------------------------
   const canvas = document.getElementById("canvas");
   const ctx = canvas.getContext("2d");
+  const matrixCanvas = document.getElementById("matrixCanvas");
+  const mctx = matrixCanvas.getContext("2d");
 
   ctx.fillStyle = "black";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   let drawing = false;
+  let model = null;
 
+  // ----- Drawing -----
   canvas.addEventListener("mousedown", () => drawing = true);
   canvas.addEventListener("mouseup", () => drawing = false);
   canvas.addEventListener("mouseleave", () => drawing = false);
@@ -25,100 +26,77 @@ document.addEventListener("DOMContentLoaded", () => {
     ctx.fill();
   }
 
-  // Clear canvas
+  // ----- Clear Canvas -----
   window.clearCanvas = function () {
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     document.getElementById("prediction").innerText = "–";
     document.getElementById("confidence").innerText = "Confidence: –";
-
-    // Clear confusion matrix
     mctx.clearRect(0, 0, matrixCanvas.width, matrixCanvas.height);
   };
 
-  // ---------------------------
-  // Load official TFJS MNIST model
-  // ---------------------------
-  const predictBtn = document.getElementById("predictBtn");
-  let model = null;
+  // ----- Build in-browser MNIST model -----
+  function createModel() {
+    const m = tf.sequential();
+    m.add(tf.layers.flatten({ inputShape: [28, 28, 1] }));
+    m.add(tf.layers.dense({ units: 128, activation: "relu" }));
+    m.add(tf.layers.dense({ units: 10, activation: "softmax" }));
+    m.compile({ optimizer: "adam", loss: "categoricalCrossentropy", metrics: ["accuracy"] });
+    return m;
+  }
 
- tf.loadLayersModel("./model/model.json")
-    .then(m => {
-      model = m;
-      predictBtn.disabled = false;
-      console.log("MODEL LOADED");
-    })
-    .catch(err => console.error("Model load failed:", err));
+  // ----- Initialize model -----
+  model = createModel();
+  console.log("MODEL READY");
 
-  // ---------------------------
-  // Prediction function
-  // ---------------------------
+  // ----- Predict -----
   window.predict = function () {
     if (!model) return;
 
-    // Resize canvas to 28x28
+    // Resize the drawn image to 28x28
     const temp = document.createElement("canvas");
     temp.width = 28;
     temp.height = 28;
     const tctx = temp.getContext("2d");
     tctx.drawImage(canvas, 0, 0, 28, 28);
 
+    // Get pixel data
     const imgData = tctx.getImageData(0, 0, 28, 28);
-    const data = imgData.data;
     const input = new Float32Array(28 * 28);
-
-    // Convert to grayscale [0,1]
     for (let i = 0; i < 28 * 28; i++) {
-      const r = data[i * 4];
-      const g = data[i * 4 + 1];
-      const b = data[i * 4 + 2];
-      const avg = (r + g + b) / 3;
-      input[i] = (255 - avg) / 255; // invert colors
+      const avg = (imgData.data[i * 4] + imgData.data[i * 4 + 1] + imgData.data[i * 4 + 2]) / 3;
+      input[i] = (255 - avg) / 255;
     }
 
-    // Make tensor and predict
     const tensor = tf.tensor4d(input, [1, 28, 28, 1]);
-    const output = model.predict(tensor);
-    const probs = output.dataSync();
 
-    // Prediction and confidence
-    let digit = probs.indexOf(Math.max(...probs));
-    let confidence = Math.max(...probs);
+    // Predict
+    const output = model.predict(tensor).dataSync();
+    const digit = output.indexOf(Math.max(...output));
+    const confidence = Math.max(...output);
 
     document.getElementById("prediction").innerText = digit;
     document.getElementById("confidence").innerText = `Confidence: ${(confidence * 100).toFixed(2)}%`;
 
-    // Draw confusion/probability matrix
-    drawMatrix(probs);
+    drawMatrix(output);
   };
 
-  // ---------------------------
-  // Confusion matrix setup
-  // ---------------------------
-  const matrixCanvas = document.getElementById("matrixCanvas");
-  const mctx = matrixCanvas.getContext("2d");
-  mctx.font = "16px Arial";
-  mctx.textAlign = "center";
-
+  // ----- Draw confusion/probability matrix -----
   function drawMatrix(probs) {
+    mctx.clearRect(0, 0, 300, 300);
     const cellSize = 30;
-    const padding = 10;
-
-    mctx.clearRect(0, 0, matrixCanvas.width, matrixCanvas.height);
-
     for (let i = 0; i < 10; i++) {
       const intensity = probs[i];
       mctx.fillStyle = `rgba(127,156,255,${intensity})`;
       mctx.fillRect(i * cellSize, 0, cellSize, cellSize);
 
       mctx.fillStyle = "#fff";
-      mctx.fillText(i, i * cellSize + cellSize / 2, padding + 12);
+      mctx.font = "16px Arial";
+      mctx.fillText(i, i * cellSize + 10, 20);
     }
   }
 
-  // ---------------------------
-  // Theme toggle
-  // ---------------------------
+  // ----- Theme toggle -----
   window.toggleTheme = function () {
     document.body.classList.toggle("light");
   };
