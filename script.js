@@ -41,12 +41,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 5️⃣ MODEL LOAD ⬅️ THIS GOES HERE
   let model = null;
-  tf.loadLayersModel("https://raw.githubusercontent.com/guillaume-chevalier/MNIST_tfjs_model/main/model.json")
+  tf.loadLayersModel("./model/model.json")
   .then(m => {
     model = m;
-    predictBtn.disabled = false;
+    document.getElementById("predictBtn").disabled = false;
     console.log("MODEL LOADED");
   })
+  .catch(err => console.error("Model load failed:", err));
 
   // 6️⃣ Confusion matrix helper
   function drawMatrix(probs) {
