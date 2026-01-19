@@ -5,7 +5,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   const ctx = canvas.getContext("2d");
   const matrixCanvas = document.getElementById("matrixCanvas");
   const mctx = matrixCanvas.getContext("2d");
+  const predictBtn = document.getElementById("predictBtn");
 
+  // Fill canvas black
   ctx.fillStyle = "black";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -35,53 +37,50 @@ document.addEventListener("DOMContentLoaded", async () => {
     mctx.clearRect(0, 0, matrixCanvas.width, matrixCanvas.height);
   };
 
-  // ----- Build in-browser MNIST model -----
-  function createModel() {
-    const m = tf.sequential();
-    m.add(tf.layers.flatten({ inputShape: [28, 28, 1] }));
-    m.add(tf.layers.dense({ units: 128, activation: "relu" }));
-    m.add(tf.layers.dense({ units: 10, activation: "softmax" }));
-    m.compile({ optimizer: "adam", loss: "categoricalCrossentropy", metrics: ["accuracy"] });
-    return m;
+  // ----- Load pretrained TFJS graph model -----
+  try {
+    model = await tf.loadGraphModel("./model/model.json");
+    console.log("MODEL READY");
+    predictBtn.disabled = false; // enable button
+  } catch (err) {
+    console.error("Model load failed:", err);
   }
 
-  // ----- Initialize model -----
-  model = createModel();
-  console.log("MODEL READY");
-
   // ----- Predict -----
-  window.predict = function () {
+  window.predict = async function () {
     if (!model) return;
 
-    // Resize the drawn image to 28x28
+    // Resize canvas to 28x28
     const temp = document.createElement("canvas");
     temp.width = 28;
     temp.height = 28;
     const tctx = temp.getContext("2d");
     tctx.drawImage(canvas, 0, 0, 28, 28);
 
-    // Get pixel data
+    // Get grayscale pixel data
     const imgData = tctx.getImageData(0, 0, 28, 28);
     const input = new Float32Array(28 * 28);
     for (let i = 0; i < 28 * 28; i++) {
       const avg = (imgData.data[i * 4] + imgData.data[i * 4 + 1] + imgData.data[i * 4 + 2]) / 3;
-      input[i] = (255 - avg) / 255;
+      input[i] = (255 - avg) / 255; // invert colors: white stroke = 1
     }
 
     const tensor = tf.tensor4d(input, [1, 28, 28, 1]);
 
-    // Predict
-    const output = model.predict(tensor).dataSync();
-    const digit = output.indexOf(Math.max(...output));
-    const confidence = Math.max(...output);
+    // Predict with graph model
+    const outputTensor = await model.executeAsync(tensor);
+    const probs = outputTensor.arraySync()[0];
+    const digit = probs.indexOf(Math.max(...probs));
+    const confidence = Math.max(...probs);
 
+    // Display prediction & confidence
     document.getElementById("prediction").innerText = digit;
     document.getElementById("confidence").innerText = `Confidence: ${(confidence * 100).toFixed(2)}%`;
 
-    drawMatrix(output);
+    drawMatrix(probs);
   };
 
-  // ----- Draw confusion/probability matrix -----
+  // ----- Draw probability/confusion matrix -----
   function drawMatrix(probs) {
     mctx.clearRect(0, 0, 300, 300);
     const cellSize = 30;
