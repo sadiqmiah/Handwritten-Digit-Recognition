@@ -1,21 +1,15 @@
 document.addEventListener("DOMContentLoaded", () => {
-
   console.log("DOM READY");
 
-  // 1️⃣ Grab DOM elements FIRST
+  // ---------------------------
+  // Canvas setup
+  // ---------------------------
   const canvas = document.getElementById("canvas");
   const ctx = canvas.getContext("2d");
 
-  const matrixCanvas = document.getElementById("matrixCanvas");
-  const mctx = matrixCanvas.getContext("2d");
-
-  const predictBtn = document.getElementById("predictBtn");
-
-  // 2️⃣ Init canvas
   ctx.fillStyle = "black";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // 3️⃣ Drawing logic
   let drawing = false;
 
   canvas.addEventListener("mousedown", () => drawing = true);
@@ -31,61 +25,101 @@ document.addEventListener("DOMContentLoaded", () => {
     ctx.fill();
   }
 
-  // 4️⃣ Clear
+  // Clear canvas
   window.clearCanvas = function () {
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     document.getElementById("prediction").innerText = "–";
     document.getElementById("confidence").innerText = "Confidence: –";
+
+    // Clear confusion matrix
+    mctx.clearRect(0, 0, matrixCanvas.width, matrixCanvas.height);
   };
 
-  // 5️⃣ MODEL LOAD ⬅️ THIS GOES HERE
+  // ---------------------------
+  // Load official TFJS MNIST model
+  // ---------------------------
+  const predictBtn = document.getElementById("predictBtn");
   let model = null;
-  tf.loadLayersModel("./model/model.json")
-  .then(m => {
-    model = m;
-    document.getElementById("predictBtn").disabled = false;
-    console.log("MODEL LOADED");
-  })
-  .catch(err => console.error("Model load failed:", err));
 
-  // 6️⃣ Confusion matrix helper
-  function drawMatrix(probs) {
-    mctx.clearRect(0, 0, 300, 300);
+  tf.loadLayersModel("https://storage.googleapis.com/tfjs-examples/mnist/model.json")
+    .then(m => {
+      model = m;
+      predictBtn.disabled = false;
+      console.log("MODEL LOADED");
+    })
+    .catch(err => console.error("Model load failed:", err));
 
-    const cellSize = 30;
-
-    for (let i = 0; i < 10; i++) {
-      mctx.fillStyle = `rgba(127,156,255,${probs[i]})`;
-      mctx.fillRect(i * cellSize, 0, cellSize, cellSize);
-      mctx.fillStyle = "#fff";
-      mctx.fillText(i, i * cellSize + 12, 20);
-    }
-  }
-
-  // 7️⃣ Predict (uses model loaded above)
+  // ---------------------------
+  // Prediction function
+  // ---------------------------
   window.predict = function () {
     if (!model) return;
 
-    const imageData = ctx.getImageData(0, 0, 280, 280);
+    // Resize canvas to 28x28
+    const temp = document.createElement("canvas");
+    temp.width = 28;
+    temp.height = 28;
+    const tctx = temp.getContext("2d");
+    tctx.drawImage(canvas, 0, 0, 28, 28);
 
-    const tensor = tf.browser
-      .fromPixels(imageData, 1)
-      .resizeNearestNeighbor([28, 28])
-      .toFloat()
-      .div(255)
-      .expandDims(0);
+    const imgData = tctx.getImageData(0, 0, 28, 28);
+    const data = imgData.data;
+    const input = new Float32Array(28 * 28);
 
-    const probs = model.predict(tensor).dataSync();
+    // Convert to grayscale [0,1]
+    for (let i = 0; i < 28 * 28; i++) {
+      const r = data[i * 4];
+      const g = data[i * 4 + 1];
+      const b = data[i * 4 + 2];
+      const avg = (r + g + b) / 3;
+      input[i] = (255 - avg) / 255; // invert colors
+    }
 
-    const digit = probs.indexOf(Math.max(...probs));
-    const confidence = Math.max(...probs);
+    // Make tensor and predict
+    const tensor = tf.tensor4d(input, [1, 28, 28, 1]);
+    const output = model.predict(tensor);
+    const probs = output.dataSync();
+
+    // Prediction and confidence
+    let digit = probs.indexOf(Math.max(...probs));
+    let confidence = Math.max(...probs);
 
     document.getElementById("prediction").innerText = digit;
-    document.getElementById("confidence").innerText =
-      `Confidence: ${(confidence * 100).toFixed(2)}%`;
+    document.getElementById("confidence").innerText = `Confidence: ${(confidence * 100).toFixed(2)}%`;
 
+    // Draw confusion/probability matrix
     drawMatrix(probs);
   };
 
+  // ---------------------------
+  // Confusion matrix setup
+  // ---------------------------
+  const matrixCanvas = document.getElementById("matrixCanvas");
+  const mctx = matrixCanvas.getContext("2d");
+  mctx.font = "16px Arial";
+  mctx.textAlign = "center";
+
+  function drawMatrix(probs) {
+    const cellSize = 30;
+    const padding = 10;
+
+    mctx.clearRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+
+    for (let i = 0; i < 10; i++) {
+      const intensity = probs[i];
+      mctx.fillStyle = `rgba(127,156,255,${intensity})`;
+      mctx.fillRect(i * cellSize, 0, cellSize, cellSize);
+
+      mctx.fillStyle = "#fff";
+      mctx.fillText(i, i * cellSize + cellSize / 2, padding + 12);
+    }
+  }
+
+  // ---------------------------
+  // Theme toggle
+  // ---------------------------
+  window.toggleTheme = function () {
+    document.body.classList.toggle("light");
+  };
 });
