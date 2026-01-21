@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // ----- Load pretrained TFJS graph model -----
   try {
-    model = await tf.loadGraphModel("./model/model.json");
+    model = await tf.loadGraphModel("./web_model/model.json");
     console.log("MODEL READY");
     predictBtn.disabled = false; // enable button
   } catch (err) {
